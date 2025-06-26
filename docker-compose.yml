@@ -10,10 +10,14 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_NAME=mydb
+      - JWT_SECRET=ultra_secreta_userconectar_2025
+      - JWT_EXPIRES_IN=3600s
       - NODE_ENV=production
     depends_on:
       - postgres
     restart: always
+    networks:
+      - userconectar_network
 
   frontend:
     build:
@@ -23,6 +27,8 @@ services:
     depends_on:
       - backend
     restart: always
+    networks:
+      - userconectar_network
 
   postgres:
     image: postgres:15
@@ -35,6 +41,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always
+    networks:
+      - userconectar_network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -46,6 +54,12 @@ services:
     depends_on:
       - postgres
     restart: always
+    networks:
+      - userconectar_network
 
 volumes:
   postgres_data:
+
+networks:
+  userconectar_network:
+    driver: bridge

@@ -1,70 +1,133 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TextField, Button, Container, Typography } from '@mui/material';
+import {
+  Container,
+  Paper,
+  TextField,
+  Button,
+  Typography,
+  Box,
+} from '@mui/material';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import { useAuth } from '../context/AuthContext';
 import { useSnackbar } from '../context/SnackbarContext';
+import logo from '../assets/logo_conectar.jpg';
 
-const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const navigate = useNavigate();
+// ✅ Schema de validação
+const schema = yup.object({
+  email: yup.string().email('Email inválido').required('Email é obrigatório'),
+  password: yup.string().required('Senha é obrigatória'),
+}).required();
+
+type FormData = yup.InferType<typeof schema>;
+
+const LoginPage = () => {
+  const { login } = useAuth();
   const { showMessage } = useSnackbar();
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({
+    resolver: yupResolver(schema),
+  });
 
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
-      const response = await fetch('http://localhost:3000/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Falha ao fazer login');
-      }
-
-      const data = await response.json();
-      localStorage.setItem('token', data.access_token);
+      await login(data.email, data.password);
       showMessage('Login realizado com sucesso!', 'success');
       navigate('/dashboard');
-    } catch (error: any) {
-      showMessage(error.message || 'Erro desconhecido ao fazer login', 'error');
+    } catch (error) {
+      showMessage('Email ou senha inválidos.', 'error');
     }
   };
 
   return (
-    <Container maxWidth="sm" style={{ marginTop: 50 }}>
-      <Typography variant="h4" gutterBottom>Login</Typography>
-      <form onSubmit={handleSubmit}>
-        <TextField
-          label="Email"
-          fullWidth
-          margin="normal"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoFocus
-        />
-        <TextField
-          label="Senha"
-          type="password"
-          fullWidth
-          margin="normal"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth
-          style={{ marginTop: 20 }}
-        >
-          Entrar
-        </Button>
-      </form>
+    <Container
+      maxWidth="sm"
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #e0f7fa, #f1f8e9)',
+      }}
+    >
+      <Paper
+        elevation={8}
+        sx={{
+          p: 4,
+          borderRadius: 4,
+          width: '100%',
+          maxWidth: 500,
+          textAlign: 'center',
+          backdropFilter: 'blur(10px)',
+          background: 'rgba(255, 255, 255, 0.5)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        <Box sx={{ mb: 3 }}>
+          <img
+            src={logo}
+            alt="UserConectar"
+            style={{ width: '220px', marginBottom: '10px' }}
+          />
+        </Box>
+
+        <Typography variant="h4" gutterBottom>
+          Bem-vindo ao UserConectar
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 3 }}>
+          Faça login para continuar
+        </Typography>
+
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <TextField
+            fullWidth
+            margin="normal"
+            label="Email"
+            {...register('email')}
+            error={!!errors.email}
+            helperText={errors.email?.message}
+          />
+
+          <TextField
+            fullWidth
+            margin="normal"
+            label="Senha"
+            type="password"
+            {...register('password')}
+            error={!!errors.password}
+            helperText={errors.password?.message}
+          />
+
+          <Button
+            fullWidth
+            variant="contained"
+            color="primary"
+            type="submit"
+            disabled={isSubmitting}
+            sx={{
+              mt: 2,
+              borderRadius: 8,
+              background:
+                'linear-gradient(135deg, rgba(0,123,255,0.9), rgba(0,180,216,0.9))',
+              boxShadow: '0 4px 20px rgba(0,123,255,0.5)',
+              '&:hover': {
+                background:
+                  'linear-gradient(135deg, rgba(0,123,255,1), rgba(0,180,216,1))',
+              },
+            }}
+          >
+            {isSubmitting ? 'Entrando...' : 'Entrar'}
+          </Button>
+        </form>
+      </Paper>
     </Container>
   );
 };

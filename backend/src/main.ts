@@ -5,18 +5,23 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Configuração do Swagger
+  app.enableCors({
+    origin: ['http://localhost:3001', 'http://frontend'],
+    credentials: true,
+  });
+
+  // 🔥 Configuração do Swagger
   const config = new DocumentBuilder()
     .setTitle('UserConectar API')
     .setDescription('API para gestão de usuários com autenticação e controle de acesso.')
     .setVersion('1.0')
-    .addBearerAuth(  // JWT Auth no Swagger
+    .addBearerAuth(
       {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
       },
-      'access-token',  // Nome da referência do security
+      'access-token',
     )
     .build();
 

@@ -1,22 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import {
-  Container,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Paper,
-  CircularProgress,
-  Alert,
-  Button,
-  Stack,
-  Snackbar,
+  Container, Typography, Table, TableBody, TableCell, TableHead, TableRow,
+  Paper, CircularProgress, Alert, Button, Stack
 } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
+import { useSnackbar } from '../context/SnackbarContext';
 
 interface User {
   id: number;
@@ -29,39 +19,19 @@ interface User {
 const DashboardPage = () => {
   const { token } = useAuth();
   const navigate = useNavigate();
+  const { showMessage } = useSnackbar();
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Snackbar states
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
-
-  const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' | 'warning' = 'success') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
-
-  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
-
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:3000/users', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get('/users');
       setUsers(response.data);
       setError(null);
     } catch (err) {
-      console.error('Erro ao buscar usuários:', err);
       setError('Erro ao carregar usuários.');
     } finally {
       setLoading(false);
@@ -75,14 +45,11 @@ const DashboardPage = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
       try {
-        await axios.delete(`http://localhost:3000/users/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        showSnackbar('Usuário excluído com sucesso!', 'success');
+        await api.delete(`/users/${id}`);
+        showMessage('Usuário excluído com sucesso!', 'success');
         fetchUsers();
       } catch (err) {
-        console.error('Erro ao excluir usuário:', err);
-        showSnackbar('Erro ao excluir usuário.', 'error');
+        showMessage('Erro ao excluir usuário.', 'error');
       }
     }
   };
@@ -98,9 +65,7 @@ const DashboardPage = () => {
   if (loading) {
     return (
       <Container sx={{ textAlign: 'center', mt: 4 }}>
-        <Typography variant="h5" gutterBottom>
-          Carregando usuários...
-        </Typography>
+        <Typography variant="h5" gutterBottom>Carregando usuários...</Typography>
         <CircularProgress />
       </Container>
     );
@@ -156,17 +121,6 @@ const DashboardPage = () => {
           </TableBody>
         </Table>
       </Paper>
-
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={4000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </Container>
   );
 };

@@ -6,7 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { HashService } from './hash.service';  // ✅ Importação do HashService
+import { HashService } from './hash.service';
 
 @Module({
   imports: [
@@ -16,12 +16,14 @@ import { HashService } from './hash.service';  // ✅ Importação do HashServic
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'secreto123',
-        signOptions: { expiresIn: '1h' },
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '1h',
+        },
       }),
     }),
   ],
-  providers: [AuthService, JwtStrategy, HashService],  // ✅ Incluindo HashService nos providers
+  providers: [AuthService, JwtStrategy, HashService],
   controllers: [AuthController],
 })
 export class AuthModule {}

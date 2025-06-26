@@ -20,9 +20,7 @@ export const SnackbarProvider = ({ children }: { children: ReactNode }) => {
     setOpen(true);
   };
 
-  const handleClose = () => {
-    setOpen(false);
-  };
+  const handleClose = () => setOpen(false);
 
   return (
     <SnackbarContext.Provider value={{ showMessage }}>
@@ -41,10 +39,8 @@ export const SnackbarProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useSnackbar = (): SnackbarContextType => {
+export const useSnackbar = () => {
   const context = useContext(SnackbarContext);
-  if (!context) {
-    throw new Error('useSnackbar deve ser usado dentro de um SnackbarProvider');
-  }
+  if (!context) throw new Error('useSnackbar deve ser usado dentro de um SnackbarProvider');
   return context;
 };

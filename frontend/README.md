@@ -21,16 +21,26 @@ Docker (para deploy com Docker Compose)
 📦 Estrutura de Pastas (frontend/)
 frontend/
 ├── src/
-│   ├── components/           # AppBar, Layout, SnackbarProvider, etc.
-│   ├── context/              # AuthContext e SnackbarContext
-│   ├── pages/                # LoginPage, DashboardPage, ProfilePage, EditUserPage, etc.
-│   ├── routes/               # ProtectedRoute
-│   ├── App.tsx
-│   └── main.tsx
-├── public/                   # Logo, favicon
+│   ├── assets/                 # logo_conectar.jpg.
+│   ├── components/             # layout.tsx , PrivateRoute.tsx.
+│   ├── context/                # AuthContext e SnackbarContext.
+│   ├── pages/                  # CreateUserPage.tsx , DashboardPage.tsx , EditUserPage.tsx , Loginpage.tsx , ProfilePage.tsx.
+│   ├── routes/                 # AppRoutes.tsx , ProtectedRoute.
+│   ├── Services/               # api.ts.
+│   ├── app.css 
+│   ├── index.css
+│   ├── index.tsx
+│   ├── react-app-env.d.ts
+│   ├── reportWebVitals.ts
+│   ├── setuptests.ts
+│   └── theme.ts
+├── .env
+├── .gitignore
 ├── Dockerfile
+├── package-look.json
 ├── package.json
-└── 
+├── README.md
+└── tsconfig.json
 
 ⚙️ Instalação e Execução Local
 Acesse a pasta do frontend:

@@ -1,20 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { Container, Typography, TextField, Button, MenuItem } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, FieldValues } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import api from '../services/api';
 
-// ✅ Schema Yup
+// 🔧 Schema Yup
 const schema = yup.object({
   name: yup.string().required('Nome é obrigatório'),
-  password: yup.string().optional().defined(),
   role: yup.string().required('Role é obrigatório'),
-}).required();
+  password: yup.string().optional(), // campo opcional
+});
 
-type FormData = yup.InferType<typeof schema>;
+// ✅ Tipo explícito
+type FormData = {
+  name: string;
+  role: string;
+  password?: string;
+};
 
 const EditUserPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,34 +33,28 @@ const EditUserPage = () => {
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as any, // 🏆 Força o resolver sem erro de TS
   });
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/users/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const userData = response.data;
-        setValue('name', userData.name);
-        setValue('role', userData.role);
-        setEmail(userData.email);
+        const response = await api.get(`/users/${id}`);
+        const user = response.data;
+        setValue('name', user.name);
+        setValue('role', user.role);
+        setEmail(user.email);
       } catch (error) {
-        console.error('Erro ao carregar usuário:', error);
+        console.error('Erro ao buscar usuário:', error);
       }
     };
 
-    fetchUser();
-  }, [id, token, setValue]);
+    if (id) fetchUser();
+  }, [id, setValue]);
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
-      await axios.put(
-        `http://localhost:3000/users/${id}`,
-        data,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put(`/users/${id}`, data);
       alert('Usuário atualizado com sucesso!');
       navigate('/dashboard');
     } catch (error) {
